@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     
     const totalUploads = records.length;
-    const totalSize = records.reduce((sum, r) => sum + (r.size || 0), 0);
+    const totalSize = records.reduce((sum: number, r: any) => sum + (r.size || 0), 0);
     
     const thisWeek = records.filter(r => {
       const uploadDate = new Date(r.uploadDate);
