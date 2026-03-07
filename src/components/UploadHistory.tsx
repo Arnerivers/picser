@@ -124,9 +124,26 @@ export default function UploadHistoryComponent({ onNewUpload }: UploadHistoryPro
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // Get the best URL for display (prioritize jsDelivr CDN)
+  const deriveJsdelivrCommitFromRaw = (rawCommitUrl?: string) => {
+    if (!rawCommitUrl) return undefined;
+
+    const match = rawCommitUrl.match(
+      /^https?:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/
+    );
+
+    if (!match) return undefined;
+
+    const [, owner, repo, commit, filePath] = match;
+    return `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${commit}/${filePath}`;
+  };
+
+  // Get the best URL for display (prioritize permanent jsDelivr CDN)
   const getBestUrl = (upload: UploadHistory) => {
     if (upload.urls?.jsdelivr_commit) return upload.urls.jsdelivr_commit;
+
+    const derivedCommitJsdelivr = deriveJsdelivrCommitFromRaw(upload.urls?.raw_commit);
+    if (derivedCommitJsdelivr) return derivedCommitJsdelivr;
+
     if (upload.urls?.jsdelivr) return upload.urls.jsdelivr;
     return upload.url;
   };
@@ -202,7 +219,11 @@ export default function UploadHistoryComponent({ onNewUpload }: UploadHistoryPro
             const bestUrl = getBestUrl(upload);
             const isCDN = bestUrl.includes('jsdelivr.net');
             const isPermanent = upload.urls?.jsdelivr_commit || upload.urls?.raw_commit;
-            const fallbackJsdelivrCommit = upload.urls?.jsdelivr_commit || (upload.url?.includes('jsdelivr.net') ? upload.url : undefined);
+            const fallbackJsdelivrCommit =
+              upload.urls?.jsdelivr_commit ||
+              deriveJsdelivrCommitFromRaw(upload.urls?.raw_commit) ||
+              upload.urls?.jsdelivr ||
+              (upload.url?.includes('jsdelivr.net') ? upload.url : undefined);
             const video = isVideo(upload);
 
             return (
