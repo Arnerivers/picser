@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     
     // 從 KV 或 localStorage 獲取收藏
     // 這裡使用簡單的內存存儲作為示例
-    const favorites = [];
+    const favorites: any[] = [];
     
     return NextResponse.json({
       success: true,
